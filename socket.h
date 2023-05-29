@@ -1,16 +1,16 @@
-#ifndef DATA_BASE_H
-#define DATA_BASE_H
+#ifndef SOCKET_H
+#define SOCKET_H
 
 #include<QObject>
-#include <QtSql>
+
 #include<QSqlDatabase>
 #include<QTcpServer>
 #include<QTcpSocket>
-class Data_base_server : public QObject
+class Socket : public QObject
 {
     Q_OBJECT
 public:
-    explicit Data_base_server(QObject *parent = nullptr);
+    explicit Socket(QObject *parent = nullptr);
 private:
     QTcpServer* server;
 signals:
@@ -20,4 +20,4 @@ public slots:
 
 };
 
-#endif // DATA_BASE_H
+#endif // SOCKET_H

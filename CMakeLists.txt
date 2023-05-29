@@ -15,7 +15,9 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Sql Network)
 
 add_executable(my_back
   main.cpp
-  data_base.cpp
+  database_connection.cpp
+  template_query.cpp
+  socket.cpp
 )
 target_link_libraries(my_back Qt${QT_VERSION_MAJOR}::Core Qt6::Sql Qt6::Network)
 
