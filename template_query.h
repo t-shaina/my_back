@@ -15,7 +15,8 @@ public:
     Template_query();
     virtual ~Template_query();
     static Template_query* create_template_query(Query_id  id);
-    static QStringList* decoding_message(QString& message);
+    static QStringList* decoding_message(const QString& message);
+    static int* get_user_id(const QString& email);
     virtual QStringList* process_request(QString &message)=0;
 };
 
