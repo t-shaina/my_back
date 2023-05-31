@@ -2,6 +2,7 @@
 #include "database_connection.h"
 #include<QSql>
 #include<QSqlQuery>
+#include<QList>
 Template_query::Template_query()
 {}
 
@@ -57,6 +58,25 @@ int* Template_query::get_user_id(const QString& email){
         connection.close_db_connection();
         return nullptr;
 }
+QList<int>* Template_query::select_all_for_user(const int* user_id){
+        QList<int>* query_result;
+        const QChar type_connection(6);
+        Database_connection connection(type_connection);
+        if(connection.open_db_connection()){
+            QSqlQuery query_select_all_for_user;
+            query_select_all_for_user.prepare("SELECT film_id FROM films WHERE users_id=?");
+            query_select_all_for_user.addBindValue(*user_id);
+            query_select_all_for_user.exec();
+            if(query_select_all_for_user.next()){
+                query_result->push_back(query_select_all_for_user.value(0).toInt());
+                return query_result;
+            }
+            else return nullptr;
+        }
+        connection.close_db_connection();
+        return nullptr;
+
+}
 QStringList* Entry_query::process_request(QString& message){
         Database_connection connection(message.at(0));
         if(connection.open_db_connection()){
@@ -83,7 +103,9 @@ QStringList* Delete_query::process_request(QString& message){
             QSqlQuery query;
             QStringList* decoded_message=Template_query::decoding_message(message);
             QStringList* query_result;
-            query.prepare("DELETE FROM films WHERE = decoded_message.at(0) AND password=decoded-message.at(1)");///делать тут
+            query.prepare("DELETE FROM films WHERE = decoded_message.at(0) AND password=decoded-message.at(1)");
+            query.bindValue();
+            query.exec();///делать тут
             connection.close_db_connection();
             return query_result;
         }
@@ -96,17 +118,28 @@ QStringList* Select_query::process_request(QString& message){
             QStringList* decoded_message=Template_query::decoding_message(message);
             QStringList* query_result;
             int* gotten_user_id=Template_query::get_user_id(decoded_message->at(0));
-            query.prepare("SELECT films.title, directors.director, genres.genre, films.year, films.rating, films.status"
-                          "FROM films, directors, genres"
-                          "WHERE films.user_id=:id"
-                          "AND (films.title=src_line"
-                          "OR directors.director=(SELECT director FROM directors "//делать тут
-                       );
-            query.bindValue(":id", *gotten_user_id);
-            query.bindValue(":src_line", decoded_message->at(1));
-            query.exec();
-            while(query.next()){
-                query_result->push_back(query.value(0).toString());
+            QList<int>* list_of_film_id=Template_query::select_all_for_user(gotten_user_id);
+            for(int i=0; i<list_of_film_id->size();i++){
+                query.prepare("SELECT films.title, directors.director, genres.genre, films.year, films.rating, films.status"
+                            "FROM films"
+                            "INNER JOIN "
+                              "(films_directors INNER JOIN directors ON films_directors.director_id=directors.director_id)"
+                            "ON films.film_id=films_directors.film_id AND films.film_id=:film_id"
+
+                            "INNER JOIN "
+                              "(films_genres INNER JOIN genres ON films_genres.genre_id=genres.genre_id)"
+                            "ON films.film_id=films_genres.film_id AND films.film_id=:film_id"
+                            "WHERE films.title=: src_line"
+                            "OR directors.director=:src_line"
+                            "OR genres.genre=:src_line");
+                query.bindValue(":film_id", list_of_film_id->at(i));
+                query.bindValue(":src_line", decoded_message->at(1));
+                query.exec();
+                while(query.next()){
+                    for(int j=0; j<6;j++){
+                        query_result->push_back(query.value(j).toString());
+                    }
+                }
             }
             connection.close_db_connection();
             return query_result;
