@@ -6,7 +6,7 @@
 #include <QStringList>
 #include<QChar>
 
-enum Query_id{entry_id=0, delete_id=1, select_id=2, update_id=3, registration_id=4};
+enum Query_id{entry_id=0, delete_id=1, select_id=2, update_id=3, registration_id=4, select_all_id=5};
 
 class Template_query: public QObject
 {
@@ -18,6 +18,7 @@ public:
     static QStringList* decoding_message(const QString& message);
     static int* get_user_id(const QString& email);
     static QList<int>* select_all_for_user(const int* user_id);
+    static bool  exist_query(const QStringList*  data_list, QStringList& already_existing_data);
     virtual QStringList* process_request(QString &message)=0;
 };
 
@@ -46,6 +47,11 @@ public:
 };
 
 class Registration_query: public Template_query{
+    Q_OBJECT
+public:
+    QStringList* process_request(QString &message);
+};
+class Select_all_query: public Template_query{
     Q_OBJECT
 public:
     QStringList* process_request(QString &message);

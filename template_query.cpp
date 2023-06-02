@@ -75,37 +75,136 @@ QList<int>* Template_query::select_all_for_user(const int* user_id){
         }
         connection.close_db_connection();
         return nullptr;
-
 }
-QStringList* Entry_query::process_request(QString& message){
+bool  Template_query::exist_query(const QStringList* decoded_message, QStringList& already_existing_data){
+        QSqlQuery query;
+        int* gotten_user_id=Template_query::get_user_id(decoded_message->at(0));
+        QStringList* decoded_directors=Template_query::decoding_message(decoded_message->at(2));
+        QStringList* decoded_genres=Template_query::decoding_message(decoded_message->at(3));
+        QList<int>* list_of_film_id=Template_query::select_all_for_user(gotten_user_id);
+        for(int i=0;i<list_of_film_id->size();i++){
+            query.prepare("SELECT films.title, directors.director, genres.genre, films.year, films.rating, films.status"
+                          "FROM films"
+                          "INNER JOIN "
+                          "(films_directors INNER JOIN directors ON films_directors.director_id=directors.director_id)"
+                          "ON films.film_id=films_directors.film_id AND films.film_id=:film_id"
+
+                          "INNER JOIN "
+                          "(films_genres INNER JOIN genres ON films_genres.genre_id=genres.genre_id)"
+                          "ON films.film_id=films_genres.film_id AND films.film_id=:film_id"
+                          "WHERE films.film_id=: film_id"
+                          "AND films.title=:title"
+                          "AND films.year=:year"
+                          "AND films.rating=:rating"
+                          "AND films.status=:status");
+            query.bindValue(":film_id", list_of_film_id->at(i));
+            query.bindValue(":title", decoded_message->at(1));
+            query.bindValue(":year", decoded_message->at(4));
+            query.bindValue(":rating", decoded_message->at(5));
+            query.bindValue(":status", decoded_message->at(6));
+        }
+        if(query.next()) return true;
+        else return false;
+}
+QStringList* Select_all_query::process_request(QString& message){
         Database_connection connection(message.at(0));
         if(connection.open_db_connection()){
             QSqlQuery query;
             QStringList* decoded_message=Template_query::decoding_message(message);
             QStringList* query_result;
-            query.prepare("SELECT user_name FROM users"
-                       "WHERE user_email=? "
-                       "AND user_password=?");
-            query.addBindValue(decoded_message->at(0));
-            query.addBindValue(decoded_message->at(1));
-            query.exec();
+            int* gotten_user_id=Template_query::get_user_id(decoded_message->at(0));
+            QList<int>* list_of_film_id=Template_query::select_all_for_user(gotten_user_id);
+            for (int i=0;i<list_of_film_id->size();i++){
+                query.prepare("SELECT films.title, directors.director, genres.genre, films.year, films.rating, films.status"
+                              "FROM films"
+                              "INNER JOIN "
+                              "(films_directors INNER JOIN directors ON films_directors.director_id=directors.director_id)"
+                              "ON films.film_id=films_directors.film_id AND films.film_id=:film_id"
+
+                              "INNER JOIN "
+                              "(films_genres INNER JOIN genres ON films_genres.genre_id=genres.genre_id)"//  делать тут
+                              "ON films.film_id=films_genres.film_id AND films.film_id=:film_id"
+                              "WHERE film_id=:film_id");
+                query.bindValue(":film_id", list_of_film_id->at(i));
+                query.addBindValue(decoded_message->at(1));
+                query.exec();
+            }
             while(query.next()){
                 query_result->push_back(query.value(0).toString());
             }
             connection.close_db_connection();
             return query_result;
         }
+
         else return nullptr;
+}
+QStringList* Entry_query::process_request(QString& message){
+        Database_connection connection(message.at(0));
+        if(connection.open_db_connection()){
+            QSqlQuery query;
+            QStringList* query_result;
+            int* user_id;
+            QStringList* decoded_message=Template_query::decoding_message(message);     
+            query.prepare("SELECT user_id, name  FROM users"
+                       "WHERE user_email=? "
+                       "AND user_password=?");
+            query.addBindValue(decoded_message->at(1));
+            query.addBindValue(decoded_message->at(2));
+            query.exec();
+            while(query.next()){
+                query_result->push_back(query.value(1).toString());
+                *user_id=query.value(0).toInt();
+            }
+            connection.close_db_connection();
+
+            Template_query* query_type=Template_query::create_template_query(static_cast<Query_id>(5));
+            QStringList* all_data =query_type->process_request(message);// Select_all_request
+            //return query_result;
+        }
+        else return nullptr;
+
+
+
 }
 QStringList* Delete_query::process_request(QString& message){
         Database_connection connection(message.at(0));
         if(connection.open_db_connection()){
             QSqlQuery query;
             QStringList* decoded_message=Template_query::decoding_message(message);
+            QStringList* decoded_directors=Template_query::decoding_message(decoded_message->at(2));
+            QStringList* decoded_genres=Template_query::decoding_message(decoded_message->at(3));
             QStringList* query_result;
-            query.prepare("DELETE FROM films WHERE = decoded_message.at(0) AND password=decoded-message.at(1)");
-            query.bindValue();
-            query.exec();///делать тут
+            int* gotten_user_id=Template_query::get_user_id(decoded_message->at(0));
+            int gotten_film_id;
+            for(int i=0; i<decoded_directors->size();i++){
+                for(int j=0; j<decoded_genres->size();j++){
+                    query.prepare("DELETE"
+                              "FROM films"
+                              "FULL JOIN "
+                              "(films_directors FULL JOIN directors ON films_directors.director_id=directors.director_id AND directors.director=:director)"
+                              "ON films.film_id=films_directors.film_id"
+
+                              "FULL JOIN "
+                              "(films_genres FULL JOIN genres ON films_genres.genre_id=genres.genre_id AND genres.genre=:genre)"
+                              "ON films.film_id=films_genres.film_id"
+                              "WHERE user_id=:gotten_user_id"
+                              "AND films.title=:title"
+                              "AND films.year=:year"
+                              "AND films.rating=:rating"
+                              "AND films.status=:status");
+                    query.bindValue(":gotten_user_id", *gotten_user_id);
+                    query.bindValue(":title", decoded_message->at(1));
+                    query.bindValue(":director", decoded_directors->at(i));
+                    query.bindValue(":genre", decoded_genres->at(j));
+                    query.bindValue(":year", decoded_message->at(4));
+                    query.bindValue(":rating", decoded_message->at(5));
+                    query.bindValue(":status", decoded_message->at(6));
+                    query.exec();
+                }
+            }
+            if(query.next()){
+                query_result->push_back("OK");
+            }
             connection.close_db_connection();
             return query_result;
         }
@@ -161,12 +260,12 @@ QStringList* Update_query::process_request(QString& message){
             QStringList* query_result;
             int* gotten_user_id;
             int gotten_film_id;
-
+            QStringList already_existing_data;
             gotten_user_id=Template_query::get_user_id(decoded_message->at(0));
             query_existance.exec("SELECT user_name FROM users"
                                  "WHERE user_email= decoded_message.at(1)"
                                  "AND password=decoded-message.at(2)");
-            if (query_existance.next()){
+            if (Template_query::exist_query(decoded_message, already_existing_data)){
                 query_result->push_back("0");
             }
             else{
@@ -225,23 +324,23 @@ QStringList* Registration_query::process_request(QString& message){
             QStringList* decoded_message=Template_query::decoding_message(message);
             QStringList* query_result;
             query_existance.prepare("SELECT user_name FROM users"
-                                 "WHERE user_email=?"
-                                 "AND password=?");
+                                    "WHERE user_email=?"
+                                    "AND password=?");
             query_existance.addBindValue(decoded_message->at(1));
             query_existance.addBindValue(decoded_message->at(2));
             query_existance.exec();
             if (query_existance.next()){
-                query_result->push_back("0");
+                query_result->push_back("EXIST");
             }
             else{
                 query.prepare("INSERT INTO users (user_id, user_name, user_password, user_email)"
-                           "VALUES (?, ?, ?)");
+                              "VALUES (?, ?, ?)");
                 query.addBindValue(decoded_message->at(0));
                 query.addBindValue(decoded_message->at(2));
                 query.addBindValue(decoded_message->at(1));
                 query.exec();
                 while(query.next()){
-                    query_result->push_back(query.value(0).toString());
+                    query_result->push_back(query.value(1).toString());
                 }
             }
             connection.close_db_connection();
