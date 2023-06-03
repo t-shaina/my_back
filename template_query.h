@@ -18,7 +18,8 @@ public:
     static QStringList* decoding_message(const QString& message);
     static int* get_user_id(const QString& email);
     static QList<int>* select_all_for_user(const int* user_id);
-    static bool  exist_query(const QStringList*  data_list, QStringList& already_existing_data);
+    static QStringList* select_all_for_record(const int* user_id, const int* film_id);
+    static QStringList*  exist_query(const QStringList*  data_list);
     virtual QStringList* process_request(QString &message)=0;
 };
 
