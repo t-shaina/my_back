@@ -26,3 +26,7 @@ bool Database_connection::open_db_connection(){
 void Database_connection::close_db_connection(){
     db.close();
 }
+bool Database_connection::has_feature(QSqlDriver::DriverFeature feature){
+    if(db.driver()->hasFeature(feature)) return true;
+    else return false;
+}

@@ -16,11 +16,13 @@ public:
     virtual ~Template_query();
     static Template_query* create_template_query(Query_id  id);
     static QStringList* decoding_message(const QString& message);
+    static QString* encoding_message(const QStringList* data_list);
     static int* get_user_id(const QString& email);
     static QList<int>* select_all_for_user(const int* user_id);
-    static QStringList* select_all_for_record(const int* user_id, const int* film_id);
-    static QStringList*  exist_query(const QStringList*  data_list);
+    static QStringList* select_all_for_record(const int* user_id, const int* film_id, const QChar type_connection='8');
+    static QStringList*  exist_query(const QStringList*  data_list, const QChar type_connection='9');
     virtual QStringList* process_request(QString &message)=0;
+
 };
 
 class Entry_query: public Template_query{
@@ -45,6 +47,9 @@ class Update_query: public Template_query{
     Q_OBJECT
 public:
     QStringList* process_request(QString &message);
+    static bool directors_update(QStringList* directors, int gotten_film_id, const QChar type_connection);
+    static bool genres_update(QStringList* directors, int gotten_film_id, const QChar type_connection);
+
 };
 
 class Registration_query: public Template_query{

@@ -28,6 +28,7 @@ void Socket::newConnection(){
     Query_id query_id=static_cast<Query_id>(message.at(0).digitValue());
     Template_query* query_type=Template_query::create_template_query(query_id);
 
-    QStringList* result=query_type->process_request(message);
+    QString* result=Template_query::encoding_message(query_type->process_request(message));
+    int bytes=socket->write(result->toUtf8());//тут проверка
 
 }
