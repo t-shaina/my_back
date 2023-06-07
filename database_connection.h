@@ -10,6 +10,7 @@ class Database_connection: public QObject
     Q_OBJECT
 public:
     Database_connection(const QChar& request_type);
+    Database_connection(const QString& request_type);
     bool open_db_connection();
     void close_db_connection();
     bool has_feature(QSqlDriver::DriverFeature feature);

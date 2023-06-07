@@ -13,6 +13,15 @@ Database_connection::Database_connection(const QChar& request_type)
     db.setPassword("123456");
 
 }
+Database_connection::Database_connection(const QString& request_type){
+    QString connection_name= QString ("connection_");
+    connection_name+= request_type;
+    db=QSqlDatabase::addDatabase("QPSQL", connection_name);//тут другое имя соединения
+    db.setHostName("my_host");
+    db.setDatabaseName("films_info");
+    db.setUserName("Tanya");
+    db.setPassword("123456");
+}
 bool Database_connection::open_db_connection(){
     if(db.open()){
         return true;
