@@ -187,16 +187,17 @@ void Template_query::select_all_for_record(QStringList* record, const int* user_
         }
 }
  bool Template_query::exist_query(QStringList* already_existing_data, const QString& message, const QString parent_type_connection){//разобрать эту
+        bool exist_state=false;
         QStringList decoded_message=Template_query::decoding_message(message);
         int gotten_user_id=Template_query::get_user_id(decoded_message.at(1), message.at(0));
-        QStringList decoded_directors=Template_query::decoding_message(decoded_message.at(3));
-        QList<int>* list_of_film_id=new QList<int>();
-        Template_query::select_all_for_user(list_of_film_id, &gotten_user_id, message.at(0));
+        QStringList decoded_directors=Template_query::decoding_message(decoded_message.at(3));      
         QString type_connection(parent_type_connection);
         type_connection.QString::push_back('_');
         type_connection.QString::push_back('4');
         Database_connection connection(type_connection);
         if(connection.open_db_connection()){
+            QList<int>* list_of_film_id=new QList<int>();
+            Template_query::select_all_for_user(list_of_film_id, &gotten_user_id, message.at(0));
             for(int i=0;i<list_of_film_id->size();i++){
                 for (int j=0;j<decoded_directors.size();j++){
                     QSqlQuery query;
@@ -205,6 +206,9 @@ void Template_query::select_all_for_record(QStringList* record, const int* user_
                                   "INNER JOIN "
                                   "(films_directors INNER JOIN directors ON films_directors.director_id=directors.director_id AND directors.director=:director)"
                                   "ON films.film_id=films_directors.film_id AND films.film_id=:film_id"
+                                  "INNER JOIN "
+                                  "(films_genres INNER JOIN genres ON films_genres.genre_id=genres.genre_id)"
+                                  "ON films.film_id=films_genres.film_id AND films.film_id=:film_id"
                                   "WHERE films.film_id=: film_id"
                                   "AND films.title=:title"
                                   "AND films.year=:year");
@@ -215,33 +219,31 @@ void Template_query::select_all_for_record(QStringList* record, const int* user_
                     if (query.next()){
                         const int* gotten_film_id=&list_of_film_id->at(i);
                         Template_query::select_all_for_record(already_existing_data, &gotten_user_id, gotten_film_id, message.at(0));
-                        connection.close_db_connection();
-                        delete list_of_film_id;
-                        return 0;
-                    }
-                    else {
-                        delete list_of_film_id;
-                        return 1;
+                        exist_state=true;
+                        break;
                     }
                 }
+                if(exist_state==true) break;
             }
-
-        }        
-        else {
             delete list_of_film_id;
-            return 1;
-        }
+            connection.close_db_connection();
+            return exist_state;
+        }        
+        else return 1;
+
 }
 void Select_all_query::process_request(QStringList* query_result, QString& message){
         QStringList decoded_message=Template_query::decoding_message(message);
         int gotten_user_id=Template_query::get_user_id(decoded_message.at(0), message.at(0));
         QList<int>* list_of_film_id=new QList<int>();
         Template_query::select_all_for_user(list_of_film_id, &gotten_user_id, message.at(0));
-            for (int i=0;i<list_of_film_id->size();i++){
-                QStringList* record=new QStringList();
-                Template_query::select_all_for_record(record, &gotten_user_id, &list_of_film_id->at(i), message.at(0));
-                *query_result+=*record;
-            }                      
+        for (int i=0;i<list_of_film_id->size();i++){
+            QStringList* record=new QStringList();
+            Template_query::select_all_for_record(record, &gotten_user_id, &list_of_film_id->at(i), message.at(0));
+            *query_result+=*record;
+            delete record;
+        }
+        delete list_of_film_id;
 }
 void  Entry_query::process_request(QStringList* query_result, QString& message){
         Database_connection connection(message.at(0));
@@ -256,20 +258,20 @@ void  Entry_query::process_request(QStringList* query_result, QString& message){
             query.addBindValue(decoded_message.at(2));
             query.exec();
             QString name_email;
-            while(query.next()){//заполнение личных данных пользователя
+            if (query.next()){//заполнение личных данных пользователя
                 int name_size=query.value(0).toString().size();
                 int email_size=query.value(1).toString().size();
                 name_email.push_back(QString::number(name_size));
                 name_email.push_back(query.value(0).toString());
                 name_email.push_back(QString::number(email_size));
                 name_email.push_back(query.value(1).toString());
+                Template_query* query_type=Template_query::create_template_query(static_cast<Query_id>(5));
+                query_type->process_request(query_result, message);// Select_all_request заполнение информации о всех фильмах для данного пользователя
+                query_result->push_front(name_email);
+                delete query_type;//мб не из функции вызывать create_template_query
             }
+            else query_result->push_back("NO");
             connection.close_db_connection();
-
-            Template_query* query_type=Template_query::create_template_query(static_cast<Query_id>(5));
-            query_type->process_request(query_result, message);// Select_all_request заполнение информации о всех фильмах для данного пользователя
-            query_result->push_front(name_email);
-            delete query_type;//мб не из функции вызывать create_template_query
         }
 }
 void  Delete_query::process_request(QStringList* query_result, QString& message){
@@ -313,26 +315,28 @@ void Select_query::process_request(QStringList* query_result, QString& message){
             Template_query::select_all_for_user(list_of_film_id, &gotten_user_id, message.at(0));
             for(int i=0; i<list_of_film_id->size();i++){
                 query.prepare("SELECT films.title, directors.director, genres.genre, films.year, films.rating, films.status"
-                            "FROM films"
-                            "INNER JOIN "
+                              "FROM films"
+                              "INNER JOIN "
                               "(films_directors INNER JOIN directors ON films_directors.director_id=directors.director_id)"
-                            "ON films.film_id=films_directors.film_id AND films.film_id=:film_id"
+                              "ON films.film_id=films_directors.film_id AND films.film_id=:film_id"
 
-                            "INNER JOIN "
+                              "INNER JOIN "
                               "(films_genres INNER JOIN genres ON films_genres.genre_id=genres.genre_id)"
-                            "ON films.film_id=films_genres.film_id AND films.film_id=:film_id"
-                            "WHERE films.title=: src_line"
-                            "OR directors.director=:src_line"
-                            "OR genres.genre=:src_line");
+                              "ON films.film_id=films_genres.film_id AND films.film_id=:film_id"
+                              "WHERE films.title=: src_line"
+                              "OR directors.director=:src_line"
+                              "OR genres.genre=:src_line");
                 query.bindValue(":film_id", list_of_film_id->at(i));
                 query.bindValue(":src_line", decoded_message.at(1));
                 query.exec();
-                while(query.next()){
-                    for(int j=0; j<6;j++){
-                        query_result->push_back(query.value(j).toString());
-                    }
+                if (query.next()){
+                    QStringList* record=new QStringList();
+                    Template_query::select_all_for_record(record, &gotten_user_id, &list_of_film_id->at(i), message.at(0));
+                    *query_result+=*record;
+                    delete record;
                 }
             }
+            delete list_of_film_id;
             connection.close_db_connection();
         }
 
