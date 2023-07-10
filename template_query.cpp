@@ -22,7 +22,7 @@ Template_query* Template_query::create_template_query(Query_id id){
             query=new Select_query();
             break;
         case insert_id:
-            query=new Update_query();
+            query=new Insert_query();
             break;
         case registration_id:
             query=new Registration_query();
@@ -42,19 +42,38 @@ Template_query* Template_query::create_template_query(Query_id id){
 QStringList Template_query::decoding_message(const QString& message){
         QStringList decoded_message;
         int length=0;
-        for (int i=1; i<message.size()-length-1;i+=length){//мб тут с условием выхода из for
-            length=message.at(i).digitValue();
+        int number_of_tens=0;
+        for (int i=1; i<message.size()-1-length;i++){//мб тут с условием выхода из for
+            number_of_tens=message.at(i).digitValue();
+            QString string_of_length;
+            for(int k=0;k<number_of_tens;k++){
+                string_of_length+=message.at(i+1);
+            }
+            length=string_of_length.toInt();
             decoded_message.push_back(message.sliced(i+1, length));
+            i+=length;
         }
         return decoded_message;
 }
 QString Template_query::encoding_message(const QStringList* data_list){
         QString encoded_message;
         for (int i=0;i<data_list->size();i++){
-            encoded_message.push_back(static_cast<char>(data_list->at(i).size()));
-            encoded_message.push_back(data_list->at(i));
+            QString element=data_list->at(i);
+            int size=element.size();
+            int size_length=Template_query::number_of_tens(size);
+            encoded_message+=QString::number(size_length);
+            encoded_message+=QString::number(size);
+            encoded_message+=element;
         }
         return encoded_message;
+}
+int Template_query::number_of_tens(int size){
+        int number_of_tens=1;
+        while(size>9){
+            size=size%10;
+            number_of_tens++;
+        }
+        return number_of_tens;
 }
 int Template_query::get_user_id(const QString& email, const QString parent_type_connection){
         QString type_connection(parent_type_connection);
