@@ -17,7 +17,10 @@ add_executable(my_back
   main.cpp
   database_connection.cpp
   template_query.cpp
-  socket.cpp
+  json_creator.cpp
+  test_server.cpp
+  socket_adapter.cpp
+
 )
 target_link_libraries(my_back Qt${QT_VERSION_MAJOR}::Core Qt6::Sql Qt6::Network)
 
