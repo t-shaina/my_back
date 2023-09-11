@@ -15,8 +15,6 @@ class Test_server:public QObject
 protected:
     QTcpServer* server_;
     QList<ISocket_adapter*>* m_clients;
-    bool verification(QString string);
-
 public:
     Test_server(QObject *parent = nullptr);
     ~Test_server();

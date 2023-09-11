@@ -14,6 +14,8 @@ public:
     bool open_db_connection();
     void close_db_connection();
     bool has_feature(QSqlDriver::DriverFeature feature);
+    QSqlDatabase get_db();
+private:
     QSqlDatabase db;
 };
 

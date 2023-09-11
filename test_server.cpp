@@ -32,18 +32,10 @@ void Test_server::on_newConnection(){
     QTcpSocket* clientConnection= server_->nextPendingConnection();
     ISocket_adapter* socket_handle=new Server_socket_adapter(clientConnection);
     m_clients->push_back(socket_handle);
-
     connect(socket_handle, SIGNAL(disconnected()), SLOT(on_disconnected()));
     connect(socket_handle, SIGNAL(have_new_message(QByteArray)), SLOT(on_message(QByteArray)));
 }
 
-
-
-bool Test_server::verification(QString string){
-    if (string.size()==5)
-        return true;
-    else return false;
-}
 void Test_server::on_disconnected(){
     qDebug() << "client disconnected";
     ISocket_adapter* client = static_cast<Server_socket_adapter*>(sender());
@@ -68,31 +60,13 @@ void Test_server::on_message(QByteArray message){
 
     Query_id query_id=static_cast<Query_id>(request_code.toInt());
     Template_query* query_type=Template_query::create_template_query(query_id);
-    //QStringList* list_result=new QStringList();
     Json_creator result=query_type->process_request(object);
-    //QString result=QString(message.at(0));
-    //result+=Template_query::encoding_message( list_result);
-    //QString email=object.take("Email").toString();
-    //qDebug()<<request_code<<" "<<email;
-
-    /*bool status=verification(email);
-    QByteArray array_data=QJsonDocument(Json_creator(request_code).get_json_data()).toJson();
-
-    if(status){
-
-        client->sendData(array_data);
-    }
-    else {
-        QJsonObject error_code_object;
-        error_code_object["RequestCode"]=request_code;
-        error_code_object["ErrorCode"]="1";
-        QByteArray array_error=QJsonDocument(error_code_object).toJson();
-        client->sendData(array_error);
-    }*/
-
+    qDebug()<<"request code is:"<<result.get_json_data().value("RequestCode").toString()<<"\n"
+            <<"error code is:"<<result.get_json_data().value("ErrorCode").toString()<<"\n"
+            <<"email is:"<<result.get_json_data().value("RequestCode").toString()<<"\n"
+             <<"rows is:"<<result.get_json_data().value("Rows").toString()<<"\n" ;
     client->sendData(QJsonDocument(result.get_json_data()).toJson());
 }
 Server_socket_adapter::Server_socket_adapter(QTcpSocket* p_socket, QObject* parent)
     :Socket_adapter(parent, p_socket){
-
 }

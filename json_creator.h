@@ -16,6 +16,7 @@ public:
     Json_creator(QString request_code, bool error_code, QString email, QJsonArray rows);
     Json_creator(QString request_code, bool error_code, QString email, QJsonObject row_new, QJsonObject row_old);
     Json_creator();
+    static QString bool_to_str(bool status);
     QJsonObject get_json_data();
     void adding_information(QString key, QString value);
     void changing_error_code(bool error_code);
