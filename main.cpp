@@ -16,37 +16,39 @@ int main(int argc, char *argv[])
     db.setDatabaseName("films_info");
     db.setUserName("tanya");
     db.setPassword("123456");*/
-    Database_connection db("9");
-    qDebug()<<"have prepared"<<db.has_feature(QSqlDriver::PreparedQueries);
-    qDebug()<<"have named placeholders"<<db.has_feature(QSqlDriver::NamedPlaceholders);
-    qDebug()<<"have positional  placeholders"<<db.has_feature(QSqlDriver::PositionalPlaceholders);
-    qDebug()<<"have last insert id"<<db.has_feature(QSqlDriver::LastInsertId);
+    /*Database_connection db("9");
+
     if(db.open_db_connection()){
 
         qDebug()<<"in main Opened";
-        QSqlQuery query_existance(db.get_db());
-        query_existance.prepare("INSERT INTO users (user_id, user_name, user_password, user_email)"
-                                "VALUES (DEFAULT, :name, :password, :email)"
-                                "RETURNING user_id");
-        query_existance.bindValue(":name", "name");
-        query_existance.bindValue(":email", "email");
-        query_existance.bindValue(":password", "123456");
-        qDebug()<<"last error after prepare"<<query_existance.lastError();
-        int i=0;
-        query_existance.exec();
-        //qDebug()<<"is active"<<query_existance.isActive();
-        qDebug()<<"is valid"<<query_existance.isValid();
-        while (query_existance.next()){
+        QSqlQuery query(db.get_db());
+                query.prepare("INSERT INTO directors (director_id, director)"
+                                               "VALUES (DEFAULT, :director)"
 
-            qDebug()<<query_existance.value(0).toString();
-            //qDebug()<<"last error"<<query_existance.lastError();
+                                               "ON CONFLICT (director) DO NOTHING"
+                                               "RETURNING director_id ");// или film_pk
+                query.bindValue(":director", "Tarantino");
+                //query.bindValue(":year", "Year");
+                //query.bindValue(":rating", "1");
+                //query.bindValue(":status", "Status");
+                //query.bindValue(":email", "tanya1@mail.ru");
+        qDebug()<<"last error after prepare"<<query.lastError();
+        int i=0;
+        //query.exec();
+        //qDebug()<<"is active"<<query_existance.isActive();
+        qDebug()<<"exec is"<<query.exec();
+        qDebug()<<"last error"<<query.lastError();
+        while (query.next()){
+
+            qDebug()<<query.value(0).toString();
+            qDebug()<<"last error"<<query.lastError();
             i++;
         }
     }
     else{
 
         qDebug() << "Error = " << db.get_db().lastError().text();
-    }
+    }*/
 
     return a.exec();
 }
