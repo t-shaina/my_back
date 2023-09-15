@@ -52,8 +52,8 @@ class Insert_query: public Template_query{
     Q_OBJECT
 public:
     Json_creator process_request(QJsonObject &object);
-    static bool directors_insert(QStringList* directors, int* gotten_film_id, const QString parent_type_connection);
-    static bool genres_insert(QStringList* genres, int* gotten_film_id, const QString parent_type_connection);
+    static bool directors_insert(QJsonObject &object, const QString parent_type_connection);
+    static bool genres_insert(QJsonObject &object, const QString parent_type_connection);
 
 };
 

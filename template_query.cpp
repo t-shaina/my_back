@@ -216,48 +216,40 @@ QJsonObject Template_query::select_all_for_record(const int* user_id, const int*
         bool exist_state=false;
         QString request_code=object.value("RequestCode").toString();
         QString email=object.value("Email").toString();
-        //QStringList decoded_message=Template_query::decoding_message(message);
-        int gotten_user_id=Template_query::get_user_id(email, request_code);
-        QStringList decoded_directors=Template_query::decoding_json_object(object.value("Directors"));
+        QJsonObject object_row=object.value("Row").toObject();
+        //int gotten_user_id=Template_query::get_user_id(email, request_code);
+        QStringList decoded_directors=Template_query::decoding_json_object(object_row.value("Directors"));
         QString type_connection(parent_type_connection);
         type_connection.QString::push_back('_');
         type_connection.QString::push_back('4');
         Database_connection connection(type_connection);
-        if(connection.open_db_connection()){
-            QList<int>* list_of_film_id=new QList<int>();
-            Template_query::select_all_for_user(list_of_film_id, &gotten_user_id, request_code);
-            for(int i=0;i<list_of_film_id->size();i++){
+        if(connection.open_db_connection()){           
                 for (int j=0;j<decoded_directors.size();j++){
                     QSqlQuery query(connection.get_db());
-                    query.prepare("SELECT film_id, films.title, directors.director, genres.genre, films.year, films.rating, films.status"
-                                  "FROM films"
-                                  "INNER JOIN "
-                                  "(films_directors INNER JOIN directors ON films_directors.director_id=directors.director_id AND directors.director=:director)"
-                                  "ON films.film_id=films_directors.film_id AND films.film_id=:film_id"
-                                  "INNER JOIN "
-                                  "(films_genres INNER JOIN genres ON films_genres.genre_id=genres.genre_id)"
-                                  "ON films.film_id=films_genres.film_id AND films.film_id=:film_id"
-                                  "WHERE films.film_id=: film_id"
-                                  "AND films.title=:title"
-                                  "AND films.year=:year");
-                    query.bindValue(":film_id", list_of_film_id->at(i));
-                    query.bindValue(":title", object.value("Title").toString());
+                    query.prepare("SELECT films.film_id "
+                                  "FROM users INNER JOIN "
+                                  "films INNER JOIN "
+                                  "films_directors  INNER JOIN "
+                                  "directors ON films_directors.director_id=directors.director_id  AND directors.director=:director "
+                                  "ON films.film_id=films_directors.film_id "
+                                  "ON users.user_id=films.user_id AND films.title=:title AND films.year=:year "
+                                  "WHERE films.user_id=(SELECT users.user_id "
+                                  "FROM users "
+                                  "WHERE users.user_email=:email)");
+                    query.bindValue(":year",  object_row.value("Year").toString());
+                    query.bindValue(":title",  object_row.value("Title").toString());
                     query.bindValue(":director", decoded_directors.at(j));
-                    query.bindValue(":year", object.value("Year").toString());
-                    if (query.next()){
-                        //const int* gotten_film_id=&list_of_film_id->at(i);
-                        //Template_query::select_all_for_record(already_existing_data, &gotten_user_id, gotten_film_id, message.at(0));
-                        exist_state=true;
+                    query.bindValue(":email", email);
+                    bool intermediate_exist_state=false;
+                    if((intermediate_exist_state=query.next())){
+                        exist_state=intermediate_exist_state;
                         break;
                     }
                 }
-                if(exist_state==true) break;
-            }
-            //delete list_of_film_id;
             connection.close_db_connection();
             return exist_state;
         }        
-        else return 1;
+        else return true;
 
 }
 Json_creator Select_all_query::process_request(QJsonObject &object){
@@ -308,11 +300,11 @@ Json_creator Entry_query::process_request(QJsonObject &object){
 Json_creator  Delete_query::process_request( QJsonObject &object){
         QString request_code=object.value("RequestCode").toString();
         QString email=object.value("Email").toString();
+        QJsonObject object_row=object.value("Row").toObject();
         Database_connection connection(request_code);
         if(connection.open_db_connection()){            
-            //QStringList decoded_message=Template_query::decoding_message(message);
-            QStringList decoded_directors=Template_query::decoding_json_object(object.value(("Directors")));
-            QStringList decoded_genres=Template_query::decoding_json_object(object.value("Genres"));
+            QStringList decoded_directors=Template_query::decoding_json_object(object_row.value(("Directors")));
+            QStringList decoded_genres=Template_query::decoding_json_object(object_row.value("Genres"));
             int gotten_user_id=Template_query::get_user_id(email, request_code);
             int gotten_film_id=gotten_film_id=Template_query::get_film_id(&gotten_user_id, object, request_code);
             QSqlQuery query(connection.get_db());
@@ -403,7 +395,7 @@ Json_creator  Insert_query::process_request(QJsonObject &object){
                 int gotten_film_id;
                 query_films_insert.prepare("INSERT INTO films (user_id, title, year, rating, status, film_id)"
                                            "VALUES ((SELECT users.user_id FROM users  WHERE users.user_email=:email), :title, :year, :rating, :status, DEFAULT)"
-                                           "RETURNING title");// или film_pk
+                                           "RETURNING film_id");// или film_pk
                 query_films_insert.bindValue(":title", object_row.value("Title").toString());
                 query_films_insert.bindValue(":year", object_row.value("Year").toString());
                 query_films_insert.bindValue(":rating", object_row.value("Rating").toString());
@@ -411,25 +403,21 @@ Json_creator  Insert_query::process_request(QJsonObject &object){
                 query_films_insert.bindValue(":email", email);
                 query_films_insert.exec();
                 qDebug()<<"last error films insert"<<query_films_insert.lastError();
-                bool films_insert=false;
                 if(query_films_insert.next()){
-                    films_insert=true;
-                }
-                gotten_film_id=query_films_insert.value(0).toInt();
-                bool directors_insertion_state=Insert_query::directors_insert(&decoded_directors, &gotten_film_id, request_code);
-                bool genres_insertion_state=Insert_query::genres_insert(&decoded_genres, &gotten_film_id, request_code);
-                qDebug()<<"films insert is"<<films_insert;
-                qDebug()<<"directors insert is"<<directors_insertion_state;
-                qDebug()<<"genres insert is"<<genres_insertion_state;
-                if(directors_insertion_state && genres_insertion_state&&films_insert){
-                    QJsonObject inner_object=object.value("Row").toObject();
-                    array.push_back(inner_object);
-                    //return Json_creator(request_code, false, email, array);
+                    gotten_film_id=query_films_insert.value(0).toInt();
+                    bool directors_insertion_state=Insert_query::directors_insert(object, request_code);
+                    bool genres_insertion_state=Insert_query::genres_insert(object, request_code);
+                    if(directors_insertion_state && genres_insertion_state){
+                        QJsonObject inner_object=object.value("Row").toObject();
+                        array.push_back(inner_object);
+                    }
+                    qDebug()<<"directors insert is"<<directors_insertion_state;
+                    qDebug()<<"genres insert is"<<genres_insertion_state;
                 }
                 connection.close_db_connection();
             }           
         }
-        return Json_creator(request_code, array.isEmpty(), email, array);
+        return Json_creator(request_code, exist, email, array);
 
 }
 Json_creator  Registration_query::process_request(QJsonObject &object){
@@ -482,86 +470,124 @@ Json_creator  Registration_query::process_request(QJsonObject &object){
         }
         return Json_creator(request_code, !row_insert, email, name);
 }
-bool Insert_query::directors_insert(QStringList* directors, int* gotten_film_id, const QString parent_type_connection){
+bool Insert_query::directors_insert(QJsonObject &object, const QString parent_type_connection){
         QString type_connection(parent_type_connection);
         type_connection.QString::push_back('_');
         type_connection.QString::push_back('5');
         Database_connection connection(type_connection);
-        bool update_state=true;
+        QString email=object.value("Email").toString();
+        QJsonObject object_row=object.value("Row").toObject();
+        QStringList directors=Template_query::decoding_json_object(object_row.value("Directors"));
+        bool insert_state=true;
         if(connection.open_db_connection()){
-            for(int i=0; i<directors->size(); i++){
-                QSqlQuery query_directors_insert(connection.get_db());
-                QSqlQuery query_films_directors_insert(connection.get_db());
-                int gotten_director_id;
+            for(int i=0; i<directors.size(); i++){
                 QSqlQuery query_gettin_already_exist_director_id(connection.get_db());
-                query_gettin_already_exist_director_id.prepare("SELECT director_id FROM directors"
-                                                               "WHERE director=:director");
-                query_gettin_already_exist_director_id.bindValue(":director", directors->at(i));
+                query_gettin_already_exist_director_id.prepare("SELECT director_id FROM directors "
+                                                               "WHERE director=:director ");
+                query_gettin_already_exist_director_id.bindValue(":director", directors.at(i));
                 query_gettin_already_exist_director_id.exec();
-                qDebug()<<"last error getting already exist director insert"<<query_directors_insert.lastError();
+                qDebug()<<"last error getting already exist director insert"<<query_gettin_already_exist_director_id.lastError();
                 if (query_gettin_already_exist_director_id.next()){
-                    gotten_director_id=query_gettin_already_exist_director_id.value(0).toInt();
+                    QSqlQuery query_if_director_is_exist (connection.get_db());
+                    query_if_director_is_exist.prepare("INSERT INTO films_directors (film_id, director_id, film_director_id)"
+                                                       "VALUES("
+                                                       "(SELECT film_id "
+                                                       "FROM films "
+                                                       "WHERE user_id=(SELECT user_id "
+                                                                       "FROM users "
+                                                                       "WHERE users.user_email=:email "
+                                                                       "LIMIT 1) "
+                                                        "AND title=:title AND year=:year AND rating=:rating AND status=:status "
+                                                        "LIMIT 1), "
+                                                        "(SELECT director_id "
+                                                        "FROM directors "
+                                                        "WHERE director=director "
+                                                        "LIMIT 1), "
+                                                        "DEFAULT)"
+                                                        "RETURNING film_director_id");
+                    query_if_director_is_exist.bindValue(":email", email);
+                    query_if_director_is_exist.bindValue(":title", object_row.value("Title").toString());
+                    query_if_director_is_exist.bindValue(":year", object_row.value("Year").toString());
+                    query_if_director_is_exist.bindValue(":rating", object_row.value("Rating").toString());
+                    query_if_director_is_exist.bindValue(":status", object_row.value("Status").toString());
+                    query_if_director_is_exist.bindValue(":director", directors.at(i));
+                    query_if_director_is_exist.exec();
+                    qDebug()<<"last error query_if_director_is_exist"<<query_if_director_is_exist.lastError();
+                    insert_state=insert_state&&query_if_director_is_exist.next();
                 }
                 else{
-                    query_directors_insert.prepare("INSERT INTO directors (director_id, director)"
-                                                "VALUES (DEFAULT, ?)"
-                                                "RETURNING director_id");
-                    query_directors_insert.addBindValue(directors->at(i));
-                    query_directors_insert.exec();
-                    qDebug()<<"last error directors insert"<<query_directors_insert.lastError();
-                    if(query_directors_insert.next()){
-                        gotten_director_id=query_directors_insert.value(0).toInt();
-                    }
-                }
+                    QSqlQuery query_if_director_is_not_exist(connection.get_db());
+                    query_if_director_is_not_exist.prepare("WITH last_director_id AS( "
+                                                                 "INSERT INTO directors(director_id, director) "
+                                                                 "VALUES(DEFAULT, :director) RETURNING director_id) "
+                                                                 "INSERT INTO films_directors(film_id, director_id, film_director_id) "
+                                                                 "VALUES("
+                                                                    "(SELECT film_id "
+                                                                    "FROM films "
+                                                                    "WHERE user_id=(SELECT users.user_id "
+                                                                                    "FROM users "
+                                                                                    "WHERE users.user_email=:email "
+                                                                                    "LIMIT 1)"
+                                                                    "AND title=:title AND year=:year AND rating=:rating AND status=:status "
+                                                                    "LIMIT 1),"
+                                                                    "(SELECT director_id FROM last_director_id LIMIT 1), DEFAULT)"
+                                                                 "RETURNING film_director_id");
+                    query_if_director_is_not_exist.bindValue(":director", directors.at(i));
+                    query_if_director_is_not_exist.bindValue(":email", email);
+                    query_if_director_is_not_exist.bindValue(":title", object_row.value("Title").toString());
+                    query_if_director_is_not_exist.bindValue(":year", object_row.value("Year").toString());
+                    query_if_director_is_not_exist.bindValue(":rating", object_row.value("Rating").toString());
+                    query_if_director_is_not_exist.bindValue(":status", object_row.value("Status").toString());
+                    query_if_director_is_not_exist.exec();
+                    qDebug()<<"last error query_if_directors_is_not_exist"<<query_if_director_is_not_exist.lastError();
+                    insert_state=insert_state&&query_if_director_is_not_exist.next();
+                }                
 
-                query_films_directors_insert.prepare("INSERT INTO films_directors (film_id, director_id, film_director_id)"
-                                                     "VALUES (?, ?, DEFAULT)");
-                query_films_directors_insert.addBindValue(*gotten_film_id);
-                query_films_directors_insert.addBindValue(gotten_director_id);
-                query_films_directors_insert.exec();
-                qDebug()<<"last error films_directors insert"<<query_films_directors_insert.lastError();
-                if(!query_films_directors_insert.next())
-                    update_state=update_state&&false;
             }
 
             connection.close_db_connection();
         }
-        else update_state=false;
-        return update_state;
+        //else insert_state=false;
+        return insert_state;
 }
-bool Insert_query::genres_insert(QStringList* genres, int* gotten_film_id, const QString parent_type_connection){
+bool Insert_query::genres_insert(QJsonObject &object, const QString parent_type_connection){
         QString type_connection(parent_type_connection);
         type_connection.QString::push_back('_');
         type_connection.QString::push_back('6');
         Database_connection connection(type_connection);
-        bool update_state=true;
+        QString email=object.value("Email").toString();
+        QJsonObject object_row=object.value("Row").toObject();
+        QStringList genres=Template_query::decoding_json_object(object_row.value("Genres"));
+        bool insert_state=true;
         if(connection.open_db_connection()){
-            for(int i=0; i<genres->size(); i++){
-                QSqlQuery query_getting_genre_id(connection.get_db());
-                QSqlQuery query_films_genres_update(connection.get_db());
-                int gotten_genre_id;
-                query_getting_genre_id.prepare("SELECT genre_id FROM genres"
-                                               "WHERE genre=?");
-                query_getting_genre_id.addBindValue(genres->at(i));
-                query_getting_genre_id.exec();
-                if(query_getting_genre_id.next()){
-                    gotten_genre_id=query_getting_genre_id.value(0).toInt();
-                    query_films_genres_update.prepare("INSERT INTO films_genres (film_id, genre_id)"
-                                                      "VALUES (?, ?)"
-                                                      "RETURNING film_genre_id");
-                    query_films_genres_update.addBindValue(*gotten_film_id);
-                    query_films_genres_update.addBindValue(gotten_genre_id);
-                    query_films_genres_update.exec();
-                    if(!query_films_genres_update.next()){
-                         update_state=update_state&&false;
-                    }
-                }               
+            for(int i=0; i<genres.size(); i++){
+                QSqlQuery query_film_genre_insert(connection.get_db());
+                query_film_genre_insert.prepare("INSERT INTO films_genres(film_id, genre_id, film_genre_id) "
+                                                "VALUES("
+                                                "(SELECT film_id "
+                                                "FROM films "
+                                                "WHERE user_id=(SELECT users.user_id "
+                                                                "FROM users "
+                                                                "WHERE users.user_email=:email "
+                                                                "LIMIT 1)"
+                                                "AND title=:title AND year=:year AND rating=:rating AND status=:status "
+                                                 "LIMIT 1),"
+                                                "(SELECT genre_id FROM genres WHERE genre=:genre), DEFAULT)"
+                                                "RETURNING genre_id");
+                query_film_genre_insert.bindValue(":genres", genres.at(i));
+                query_film_genre_insert.bindValue(":email", email);
+                query_film_genre_insert.bindValue(":title", object_row.value("Title").toString());
+                query_film_genre_insert.bindValue(":year", object_row.value("Year").toString());
+                query_film_genre_insert.bindValue(":rating", object_row.value("Rating").toString());
+                query_film_genre_insert.bindValue(":status", object_row.value("Status").toString());
+                query_film_genre_insert.exec();
+                qDebug()<<"last error query_film_genre_insert"<<query_film_genre_insert.lastError();
+                insert_state=insert_state&&query_film_genre_insert.next();
             }
-
             connection.close_db_connection();
         }
-        else update_state=false;
-        return update_state;
+        //else update_state=false;
+        return insert_state;
 }
 Json_creator  Update_query::process_request(QJsonObject &object){
         QString request_code=object.value("RequestCode").toString();

@@ -22,16 +22,17 @@ int main(int argc, char *argv[])
 
         qDebug()<<"in main Opened";
         QSqlQuery query(db.get_db());
-                query.prepare("INSERT INTO directors (director_id, director)"
-                                               "VALUES (DEFAULT, :director)"
+        query.prepare(
+                                                        "SELECT director_id FROM directors "
+                                                               "WHERE director=:director "
+                                                               );
+                query.bindValue(":email", "tanya1@mail.ru");
+                query.bindValue(":title", "Title");
+                query.bindValue(":year", "Year");
+                query.bindValue(":rating", "1");
+                query.bindValue(":status", "Status");
+                query.bindValue(":director", "new_director");
 
-                                               "ON CONFLICT (director) DO NOTHING"
-                                               "RETURNING director_id ");// или film_pk
-                query.bindValue(":director", "Tarantino");
-                //query.bindValue(":year", "Year");
-                //query.bindValue(":rating", "1");
-                //query.bindValue(":status", "Status");
-                //query.bindValue(":email", "tanya1@mail.ru");
         qDebug()<<"last error after prepare"<<query.lastError();
         int i=0;
         //query.exec();
