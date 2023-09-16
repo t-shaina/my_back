@@ -30,27 +30,22 @@ void Socket_adapter::on_readyRead(){
         if (block_size_in==0){
             if(socket_->bytesAvailable()<sizeof(int))
                 return;
-            in>>block_size_in;
-
-            //qDebug()<<"block_size_in="<< block_size_in;
+            in>>block_size_in;          
         }
         else{
             if(socket_->bytesAvailable()<block_size_in)
             return;
             in>>buf;
             block_size_in=0;
-            //qDebug() <<buf;
             emit have_new_message(buf);
         }
     }
 }
 void Socket_adapter::on_disconnected(){
-    qDebug()<<"in disconnected in Socket_adapter";
     socket_->deleteLater();
     emit disconnected();
 }
 void Socket_adapter::sendData(const QByteArray& message){
-    qDebug()<<"in senddata"<< message;
     QByteArray block;
     QDataStream sendStream(&block, QIODevice::ReadWrite);
     sendStream << quint16(0) << message;

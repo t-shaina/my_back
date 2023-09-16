@@ -61,10 +61,6 @@ void Test_server::on_message(QByteArray message){
     Query_id query_id=static_cast<Query_id>(request_code.toInt());
     Template_query* query_type=Template_query::create_template_query(query_id);
     Json_creator result=query_type->process_request(object);
-    qDebug()<<"request code is:"<<result.get_json_data().value("RequestCode").toString()<<"\n"
-            <<"error code is:"<<result.get_json_data().value("ErrorCode").toString()<<"\n"
-            <<"email is:"<<result.get_json_data().value("RequestCode").toString()<<"\n"
-             <<"rows is:"<<result.get_json_data().value("Rows").toString()<<"\n" ;
     client->sendData(QJsonDocument(result.get_json_data()).toJson());
 }
 Server_socket_adapter::Server_socket_adapter(QTcpSocket* p_socket, QObject* parent)

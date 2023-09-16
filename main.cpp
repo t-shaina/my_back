@@ -23,15 +23,28 @@ int main(int argc, char *argv[])
         qDebug()<<"in main Opened";
         QSqlQuery query(db.get_db());
         query.prepare(
-                                                        "SELECT director_id FROM directors "
-                                                               "WHERE director=:director "
-                                                               );
+"DELETE "
+                          "FROM films "
+                          "WHERE user_id IN "
+                                        "(SELECT users.user_id "
+                                        "FROM users "
+                                        "WHERE users.user_email=:email) "
+                           "AND film_id IN (SELECT films.film_id "
+                                        "FROM films INNER JOIN "
+                                        "films_directors INNER JOIN directors ON films_directors.director_id=directors.director_id AND directors.director=:director "
+                                        "ON films.film_id=films_directors.film_id) "
+                          "AND films.title=:title "
+                          "AND films.year=:year "
+                          "AND films.rating=:rating "
+                          "AND films.status=:status "
+                          "RETURNING films.film_id");
                 query.bindValue(":email", "tanya1@mail.ru");
+                query.bindValue(":src_line", "Барби");
                 query.bindValue(":title", "Title");
                 query.bindValue(":year", "Year");
                 query.bindValue(":rating", "1");
                 query.bindValue(":status", "Status");
-                query.bindValue(":director", "new_director");
+                query.bindValue(":director", "Tarantino");
 
         qDebug()<<"last error after prepare"<<query.lastError();
         int i=0;
