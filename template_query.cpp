@@ -50,26 +50,7 @@ QStringList Template_query::decoding_json_object(const QJsonValue& object){
         }
         return decoded_object;
 }
-/*QString Template_query::encoding_message(const QStringList* data_list){
-        QString encoded_message;
-        for (int i=0;i<data_list->size();i++){
-            QString element=data_list->at(i);
-            int size=element.size();
-            int size_length=Template_query::number_of_tens(size);
-            encoded_message+=QString::number(size_length);
-            encoded_message+=QString::number(size);
-            encoded_message+=element;
-        }
-        return encoded_message;
-}
-int Template_query::number_of_tens(int size){
-        int number_of_tens=1;
-        while(size>9){
-            size=size%10;
-            number_of_tens++;
-        }
-        return number_of_tens;
-}*/
+
 int Template_query::get_user_id(const QString& email, const QString parent_type_connection){
         QString type_connection(parent_type_connection);
         type_connection.QString::push_back('_');
@@ -215,7 +196,7 @@ QJsonObject Template_query::select_all_for_record(const QString& email, int numb
         return record;
 }
  bool Template_query::exist_query(const QJsonObject& object, const QString parent_type_connection){//разобрать эту
-        bool exist_state=false;
+        bool exist_state=true;
         QString request_code=object.value("RequestCode").toString();
         QString email=object.value("Email").toString();
         QJsonObject object_row=object.value("Row").toObject();
@@ -229,27 +210,27 @@ QJsonObject Template_query::select_all_for_record(const QString& email, int numb
                 for (int j=0;j<decoded_directors.size();j++){
                     QSqlQuery query(connection.get_db());
                     query.prepare("SELECT films.film_id "
-                                  "FROM users INNER JOIN "
+                                  "FROM "
                                   "films INNER JOIN "
                                   "films_directors  INNER JOIN "
                                   "directors ON films_directors.director_id=directors.director_id  AND directors.director=:director "
                                   "ON films.film_id=films_directors.film_id "
-                                  "ON users.user_id=films.user_id AND films.title=:title AND films.year=:year "
+
                                   "WHERE films.user_id=(SELECT users.user_id "
-                                  "FROM users "
-                                  "WHERE users.user_email=:email)");
+                                                        "FROM users "
+                                                        "WHERE users.user_email=:email)"
+                                  "AND films.title=:title AND films.year=:year ");
                     query.bindValue(":year",  object_row.value("Year").toString());
                     query.bindValue(":title",  object_row.value("Title").toString());
                     query.bindValue(":director", decoded_directors.at(j));
                     query.bindValue(":email", email);
                     bool intermediate_exist_state=false;
-                    if((intermediate_exist_state=query.next())){
-                        exist_state=intermediate_exist_state;
-                        break;
+                    if(query.next()){
+                        return true;
                     }
                 }
-            connection.close_db_connection();
-            return exist_state;
+                connection.close_db_connection();
+                return false;
         }        
         else return true;
 
@@ -573,6 +554,7 @@ bool Insert_query::genres_insert(QJsonObject &object, const QString parent_type_
         type_connection.QString::push_back('6');
         Database_connection connection(type_connection);
         QString email=object.value("Email").toString();
+
         QJsonObject object_row=object.value("Row").toObject();
         QStringList genres=Template_query::decoding_json_object(object_row.value("Genres"));
         bool insert_state=true;
@@ -591,7 +573,7 @@ bool Insert_query::genres_insert(QJsonObject &object, const QString parent_type_
                                                  "LIMIT 1),"
                                                 "(SELECT genre_id FROM genres WHERE genre=:genre), DEFAULT)"
                                                 "RETURNING genre_id");
-                query_film_genre_insert.bindValue(":genres", genres.at(i));
+                query_film_genre_insert.bindValue(":genre", genres.at(i));
                 query_film_genre_insert.bindValue(":email", email);
                 query_film_genre_insert.bindValue(":title", object_row.value("Title").toString());
                 query_film_genre_insert.bindValue(":year", object_row.value("Year").toString());

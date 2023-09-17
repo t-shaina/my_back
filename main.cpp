@@ -16,35 +16,35 @@ int main(int argc, char *argv[])
     db.setDatabaseName("films_info");
     db.setUserName("tanya");
     db.setPassword("123456");*/
-    /*Database_connection db("9");
+    Database_connection db("9");
 
     if(db.open_db_connection()){
 
         qDebug()<<"in main Opened";
         QSqlQuery query(db.get_db());
-        query.prepare(
-"DELETE "
-                          "FROM films "
-                          "WHERE user_id IN "
-                                        "(SELECT users.user_id "
-                                        "FROM users "
-                                        "WHERE users.user_email=:email) "
-                           "AND film_id IN (SELECT films.film_id "
-                                        "FROM films INNER JOIN "
-                                        "films_directors INNER JOIN directors ON films_directors.director_id=directors.director_id AND directors.director=:director "
-                                        "ON films.film_id=films_directors.film_id) "
-                          "AND films.title=:title "
-                          "AND films.year=:year "
-                          "AND films.rating=:rating "
-                          "AND films.status=:status "
-                          "RETURNING films.film_id");
+        QStringList genres;
+        QString genre="Драма";
+        genres.push_back(genre);
+        qDebug()<<"genre before prepare is"<<genre;
+        query.prepare( "SELECT films.film_id "
+                                  "FROM "
+                                  "films INNER JOIN "
+                                  "films_directors  INNER JOIN "
+                                  "directors ON films_directors.director_id=directors.director_id  AND directors.director=:director "
+                                  "ON films.film_id=films_directors.film_id "
+
+                                  "WHERE films.user_id=(SELECT users.user_id "
+                                                        "FROM users "
+                                                        "WHERE users.user_email=:email)"
+                                  "AND films.title=:title AND films.year=:year ");
                 query.bindValue(":email", "tanya1@mail.ru");
-                query.bindValue(":src_line", "Барби");
-                query.bindValue(":title", "Title");
-                query.bindValue(":year", "Year");
+
+                query.bindValue(":genre", genre);
+                query.bindValue(":title", "Зеленая миля");
+                query.bindValue(":year", "1999");
                 query.bindValue(":rating", "1");
                 query.bindValue(":status", "Status");
-                query.bindValue(":director", "Tarantino");
+                query.bindValue(":director", "Дарабонт");
 
         qDebug()<<"last error after prepare"<<query.lastError();
         int i=0;
@@ -52,9 +52,9 @@ int main(int argc, char *argv[])
         //qDebug()<<"is active"<<query_existance.isActive();
         qDebug()<<"exec is"<<query.exec();
         qDebug()<<"last error"<<query.lastError();
-        while (query.next()){
+        if (query.next()){
 
-            qDebug()<<query.value(0).toString();
+            qDebug()<<"ROW IS EXIST "<<query.value(0).toString();
             qDebug()<<"last error"<<query.lastError();
             i++;
         }
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     else{
 
         qDebug() << "Error = " << db.get_db().lastError().text();
-    }*/
+    }
 
     return a.exec();
 }
