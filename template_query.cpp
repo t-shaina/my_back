@@ -184,9 +184,10 @@ QJsonObject Template_query::select_all_for_record(const QString& email, int numb
                 QJsonArray genres;
                 while(query_directors.next()){
                     directors.push_back(query_directors.value(0).toString());//counter=0
+                    qDebug()<<"in select all for record director is"<<query_directors.value(0).toString();
                 }
                 while(query_genres.next()){
-                    directors.push_back(query_genres.value(0).toString());//counter=0
+                    genres.push_back(query_genres.value(0).toString());//counter=0
                 }
                 record["Directors"]=directors;
                 record["Genres"]=genres;
@@ -196,8 +197,8 @@ QJsonObject Template_query::select_all_for_record(const QString& email, int numb
         return record;
 }
  bool Template_query::exist_query(const QJsonObject& object, const QString parent_type_connection){//разобрать эту
-        bool exist_state=true;
-        QString request_code=object.value("RequestCode").toString();
+        bool exist_state=false;
+        //QString request_code=object.value("RequestCode").toString();
         QString email=object.value("Email").toString();
         QJsonObject object_row=object.value("Row").toObject();
         //int gotten_user_id=Template_query::get_user_id(email, request_code);
@@ -224,13 +225,18 @@ QJsonObject Template_query::select_all_for_record(const QString& email, int numb
                     query.bindValue(":title",  object_row.value("Title").toString());
                     query.bindValue(":director", decoded_directors.at(j));
                     query.bindValue(":email", email);
+                    query.exec();
+                    qDebug()<<"last error in exist query"<<query.lastError();
                     bool intermediate_exist_state=false;
-                    if(query.next()){
-                        return true;
+                    if((intermediate_exist_state=query.next())){
+                        qDebug()<<"last error"<<query.lastError();
+                        qDebug()<<"intermidiate exist state is"<<intermediate_exist_state;
+                        exist_state=true;
+                        break;
                     }
                 }
                 connection.close_db_connection();
-                return false;
+                return exist_state;
         }        
         else return true;
 

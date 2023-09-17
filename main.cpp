@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     db.setDatabaseName("films_info");
     db.setUserName("tanya");
     db.setPassword("123456");*/
-    Database_connection db("9");
+    /*Database_connection db("9");
 
     if(db.open_db_connection()){
 
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     else{
 
         qDebug() << "Error = " << db.get_db().lastError().text();
-    }
+    }*/
 
     return a.exec();
 }
