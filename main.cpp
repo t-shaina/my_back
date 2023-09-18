@@ -26,24 +26,24 @@ int main(int argc, char *argv[])
         QString genre="Драма";
         genres.push_back(genre);
         qDebug()<<"genre before prepare is"<<genre;
-        query.prepare( "SELECT films.film_id "
-                                  "FROM "
-                                  "films INNER JOIN "
-                                  "films_directors  INNER JOIN "
-                                  "directors ON films_directors.director_id=directors.director_id  AND directors.director=:director "
-                                  "ON films.film_id=films_directors.film_id "
+        query.prepare(
+                                                       "SELECT title "
+                                                       "FROM films "
+                                                       "WHERE user_id=(SELECT user_id "
+                                                                       "FROM users "
+                                                                       "WHERE users.user_email=:email "
+                                                                       "LIMIT 1) "
 
-                                  "WHERE films.user_id=(SELECT users.user_id "
-                                                        "FROM users "
-                                                        "WHERE users.user_email=:email)"
-                                  "AND films.title=:title AND films.year=:year ");
+                                                        "AND film_id=:id "
+                                                        "LIMIT 1");
+                //query.bindValue(":email", "tanya1@mail.ru");
+
                 query.bindValue(":email", "tanya1@mail.ru");
-
-                query.bindValue(":genre", genre);
-                query.bindValue(":title", "Зеленая миля");
-                query.bindValue(":year", "1999");
-                query.bindValue(":rating", "1");
-                query.bindValue(":status", "Status");
+                 query.bindValue(":id", "72");
+                query.bindValue(":title", "test 1");
+                query.bindValue(":year", "1937");
+                query.bindValue(":rating", "0");
+                query.bindValue(":status", "Просмотрено");
                 query.bindValue(":director", "Дарабонт");
 
         qDebug()<<"last error after prepare"<<query.lastError();
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
         //qDebug()<<"is active"<<query_existance.isActive();
         qDebug()<<"exec is"<<query.exec();
         qDebug()<<"last error"<<query.lastError();
-        if (query.next()){
+        while (query.next()){
 
             qDebug()<<"ROW IS EXIST "<<query.value(0).toString();
             qDebug()<<"last error"<<query.lastError();
