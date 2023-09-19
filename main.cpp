@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     db.setUserName("tanya");
     db.setPassword("123456");*/
     /*Database_connection db("9");
-
+    qDebug()<<"transaction"<<db.has_feature(QSqlDriver::Transactions);
     if(db.open_db_connection()){
 
         qDebug()<<"in main Opened";

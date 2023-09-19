@@ -38,6 +38,18 @@ bool Database_connection::open_db_connection(){
 void Database_connection::close_db_connection(){
     db.close();
 }
+bool Database_connection::start_db_transaction(){
+    if(db.transaction()){
+        return true;
+    }
+    else return false;
+}
+bool Database_connection::do_db_commit(){
+    return db.commit();
+}
+bool Database_connection::do_db_rollback(){
+    return db.rollback();
+}
 bool Database_connection::has_feature(QSqlDriver::DriverFeature feature){
     if(db.driver()->hasFeature(feature)) return true;
     else return false;

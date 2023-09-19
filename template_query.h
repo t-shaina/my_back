@@ -54,8 +54,9 @@ class Insert_query: public Template_query{
 public:
     Json_creator process_request(QJsonObject &object);
     static bool directors_insert(QJsonObject &object, int film_id, const QString parent_type_connection);
+    static bool insertion_of_existing_director(const QString& director, int film_id, const QString parent_type_connection);
+    static bool insertion_of_not_existing_director(const QString& director, int film_id, const QString parent_type_connection);
     static bool genres_insert(QJsonObject &object, int film_id, const QString parent_type_connection);
-
 };
 
 class Registration_query: public Template_query{
