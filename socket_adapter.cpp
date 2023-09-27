@@ -42,7 +42,7 @@ void Socket_adapter::on_readyRead(){
     }
 }
 void Socket_adapter::on_disconnected(){
-    socket_->deleteLater();
+    //socket_->deleteLater();
     emit disconnected();
 }
 void Socket_adapter::sendData(const QByteArray& message){

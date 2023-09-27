@@ -74,6 +74,7 @@ class Update_query: public Template_query{
 public:
     Json_creator process_request(QJsonObject &object);
     static bool directors_update(QStringList* directors, int* gotten_film_id, const QString parent_type_connection);
+    static bool updation_of_director(const QString& director, int film_id, const QString parent_type_connection);
     static bool genres_update(QStringList* genres, int* gotten_film_id, const QString parent_type_connection);
 };
 #endif // TEMPLATE_QUERY_H

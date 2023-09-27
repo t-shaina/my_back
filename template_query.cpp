@@ -377,7 +377,8 @@ Json_creator Select_query::process_request(QJsonObject &object){
             int count_of_films_for_users=Template_query::count_of_films_for_user(email, request_code);
             if(count_of_films_for_users==0){
                 return Json_creator(request_code, true, email);
-            }           
+            }
+
             for(int i=0; i<count_of_films_for_users;i++){
                 query.prepare("SELECT films.title, directors.director, genres.genre, films.year, films.rating, films.status"
                               "FROM films"
@@ -702,6 +703,9 @@ bool Update_query::directors_update(QStringList* directors, int* gotten_film_id,
         }
         else update_state=false;
         return update_state;
+}
+bool Update_query::updation_of_director(const QString& director, int film_id, const QString parent_type_connection){
+
 }
 bool Update_query::genres_update(QStringList* genres, int* gotten_film_id, const QString parent_type_connection){
         QString type_connection(parent_type_connection);
