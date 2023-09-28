@@ -22,8 +22,9 @@ public:
     static int get_user_id(const QString& email, const QString parent_type_connection);
     static int get_film_id(const int* user_id, const QJsonObject &object, const QString parent_type_connection);
     static int count_of_films_for_user(const QString& email, const QString parent_type_connection);
-    static void select_all_for_user(QList<int>* films_id, const int* user_id, const QString parent_type_connection);
+    static QList<int>* select_all_for_user(const QString& email, const QString parent_type_connection);
     static QJsonObject select_all_for_record(const QString& email, int number_of_row, const QString parent_type_connection);
+    static QJsonObject select_all_for_record(int film_id, const QString parent_type_connection);
     static bool exist_query(const QJsonObject& object, const QString parent_type_connection);
     virtual  Json_creator process_request(QJsonObject &object)=0;
 

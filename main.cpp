@@ -5,6 +5,7 @@
 #include<QSqlDatabase>
 #include<QSqlError>
 #include<QSqlQuery>
+#include<QList>
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -19,45 +20,54 @@ int main(int argc, char *argv[])
     /*Database_connection db("9");
     qDebug()<<"transaction"<<db.has_feature(QSqlDriver::Transactions);
     if(db.open_db_connection()){
-
-        qDebug()<<"in main Opened";
-        QSqlQuery query(db.get_db());
-        QStringList genres;
-        QString genre="Драма";
-        genres.push_back(genre);
-        qDebug()<<"genre before prepare is"<<genre;
-        query.prepare(
-                                                       "SELECT title "
-                                                       "FROM films "
-                                                       "WHERE user_id=(SELECT user_id "
-                                                                       "FROM users "
-                                                                       "WHERE users.user_email=:email "
-                                                                       "LIMIT 1) "
-
-                                                        "AND film_id=:id "
-                                                        "LIMIT 1");
-                //query.bindValue(":email", "tanya1@mail.ru");
-
-                query.bindValue(":email", "tanya1@mail.ru");
-                 query.bindValue(":id", "72");
-                query.bindValue(":title", "test 1");
-                query.bindValue(":year", "1937");
-                query.bindValue(":rating", "0");
-                query.bindValue(":status", "Просмотрено");
-                query.bindValue(":director", "Дарабонт");
-
-        qDebug()<<"last error after prepare"<<query.lastError();
-        int i=0;
-        //query.exec();
-        //qDebug()<<"is active"<<query_existance.isActive();
-        qDebug()<<"exec is"<<query.exec();
-        qDebug()<<"last error"<<query.lastError();
-        while (query.next()){
-
-            qDebug()<<"ROW IS EXIST "<<query.value(0).toString();
-            qDebug()<<"last error"<<query.lastError();
-            i++;
+        QList<int>* films_id=new QList<int>();
+        QSqlQuery query_select_all_for_user(db.get_db());
+        query_select_all_for_user.prepare("SELECT film_id FROM films "
+                                          "WHERE films.user_id=(SELECT users.user_id "
+                                                                "FROM users "
+                                                                "WHERE users.user_email=:email) ");
+        query_select_all_for_user.bindValue(":email", "tanya1@mail.ru");
+        qDebug()<<"last error after prepare in query select all for user"<<query_select_all_for_user.lastError();
+        query_select_all_for_user.exec();
+        qDebug()<<"last error in query select all"<<query_select_all_for_user.lastError();
+        while (query_select_all_for_user.next()){
+            films_id->push_back(query_select_all_for_user.value(0).toInt());
+            qDebug()<<"film id  is  "<<query_select_all_for_user.value(0).toString();
         }
+
+
+        for(int i=0; i<films_id->size();++i){
+            QSqlQuery query(db.get_db());
+            query.prepare("SELECT films.title, directors.director, genres.genre, films.year, films.rating, films.status "
+                          "FROM films "
+
+                          "INNER JOIN "
+                          "films_directors INNER JOIN directors ON films_directors.director_id=directors.director_id "
+                          "ON films.film_id=films_directors.film_id AND films.film_id=:film_id "
+
+                          "INNER JOIN "
+                          "films_genres INNER JOIN genres ON films_genres.genre_id=genres.genre_id "
+                          "ON films.film_id=films_genres.film_id AND films.film_id=:film_id "
+                          "WHERE "
+                          "films.title=:src_line "
+                          "OR directors.director=:src_line "
+                          "OR genres.genre=:src_line");
+            query.bindValue(":email", "tanya1@mail.ru");
+            query.bindValue(":src_line", "Король Лев");
+            query.bindValue(":film_id", films_id->at(i));
+            qDebug()<<"last error after prepare"<<query.lastError();
+            query.exec();
+            qDebug()<<"exec is"<<query.exec();
+            qDebug()<<"last error"<<query.lastError();
+            int j=0;
+            if (query.next()){
+
+                qDebug()<<"Title is  "<<query.value(0).toString();
+
+                j++;
+            }
+        }
+
     }
     else{
 
