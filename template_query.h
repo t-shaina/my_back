@@ -20,7 +20,7 @@ public:
     //static QString* encoding_message(const QStringList* data_list);
     //static int number_of_tens(int size);
     static int get_user_id(const QString& email, const QString parent_type_connection);
-    static int get_film_id(const int* user_id, const QJsonObject &object, const QString parent_type_connection);
+    static int get_film_id(const QString& email, const QJsonObject &object, const QString parent_type_connection);
     static int count_of_films_for_user(const QString& email, const QString parent_type_connection);
     static QList<int>* select_all_for_user(const QString& email, const QString parent_type_connection);
     static QJsonObject select_all_for_record(const QString& email, int number_of_row, const QString parent_type_connection);
@@ -58,6 +58,7 @@ public:
     static bool insertion_of_existing_director(const QString& director, int film_id, const QString parent_type_connection);
     static bool insertion_of_not_existing_director(const QString& director, int film_id, const QString parent_type_connection);
     static bool genres_insert(QJsonObject &object, int film_id, const QString parent_type_connection);
+    static bool genres_insert(QStringList* genres, int film_id, const QString parent_type_connection);
 };
 
 class Registration_query: public Template_query{
@@ -74,8 +75,7 @@ class Update_query: public Template_query{
     Q_OBJECT
 public:
     Json_creator process_request(QJsonObject &object);
-    static bool directors_update(QStringList* directors, int* gotten_film_id, const QString parent_type_connection);
-    static bool updation_of_director(const QString& director, int film_id, const QString parent_type_connection);
-    static bool genres_update(QStringList* genres, int* gotten_film_id, const QString parent_type_connection);
+    static bool directors_update(QStringList* old_directors, QStringList* directors, int film_id, const QString parent_type_connection);
+    static bool genres_update(QStringList* old_genres, QStringList* genres, int film_id, const QString parent_type_connection);
 };
 #endif // TEMPLATE_QUERY_H
