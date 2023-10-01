@@ -36,6 +36,7 @@ bool Database_connection::open_db_connection(){
     }
 }
 void Database_connection::close_db_connection(){
+    qDebug()<<"last error in clode-db_connectiom is"<<db.lastError();
     db.close();
 }
 bool Database_connection::start_db_transaction(){
