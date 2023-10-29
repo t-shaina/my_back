@@ -4,7 +4,7 @@
 #include <QObject>
 #include<QSql>
 #include<QSqlDatabase>
-#include<QSqlDriver>
+#include<QSqlDriver> // отступ + пробел между "#include" и <>
 class Database_connection: public QObject
 {
     Q_OBJECT

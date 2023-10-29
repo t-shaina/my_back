@@ -12,7 +12,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Sql Network)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Sql Network)
 
-
+# заголовочные файлы тоже следует добавлять.
+# так они будут отображаться во всяких иде как часть проекта.
+# + менее вероятность что смейк пропустит их изменения для правил сборки
 add_executable(my_back
   main.cpp
   database_connection.cpp

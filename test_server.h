@@ -9,7 +9,7 @@
 #include"socket_adapter.h"
 #include<QJsonParseError>
 #include<QJsonObject>
-class Test_server:public QObject
+class Test_server:public QObject // пробелы украли чёрные челы? :3
 {
     Q_OBJECT
 protected:

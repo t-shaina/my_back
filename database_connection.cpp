@@ -13,7 +13,7 @@ Database_connection::Database_connection(const QChar& request_type)
     db.setUserName("tanya");
     db.setPassword("123456");
 
-}
+} // на отступы между определениями функций бюджета не хватило? =*)
 Database_connection::Database_connection(const QString& request_type){
     QString connection_name= QString ("connection_");
     connection_name+= request_type;

@@ -13,6 +13,7 @@ Template_query::~Template_query()
 {}
 Template_query* Template_query::create_template_query(Query_id id){
     Template_query* query;
+    // вместо подобных нижестоящему свитчей используй си-массивы
     switch(id){
         case entry_id:
             query=new Entry_query();
@@ -849,3 +850,8 @@ bool Delete_query::genres_delete(QStringList* genres, int* gotten_film_id, const
         else update_state=false;
         return update_state;
 }
+
+// не вникал в детали, но выглядит как несколько подобных по структуре функций.
+// мб можно сделать лаконичнее
+
+
