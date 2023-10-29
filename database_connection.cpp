@@ -15,8 +15,8 @@ Database_connection::Database_connection(const QChar& request_type) {
 
 Database_connection::Database_connection(const QString& request_type) {
     QString connection_name = QString("connection_");
-    connection_name+= request_type;
-    qDebug()<<"db_connection name is: " << connection_name;
+    connection_name += request_type;
+    qDebug() << "db_connection name is: " << connection_name;
     db=QSqlDatabase::addDatabase("QPSQL", connection_name);
     db.setHostName("127.0.0.1");
     db.setPort(5432);
