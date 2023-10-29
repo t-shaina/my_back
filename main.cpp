@@ -1,16 +1,17 @@
-
 #include "database_connection.h"
-#include <QCoreApplication>
 #include "test_server.h"
-#include<QSqlDatabase>
-#include<QSqlError>
-#include<QSqlQuery>
-#include<QList>
-int main(int argc, char *argv[])
-{
-    QCoreApplication a(argc, argv);
-    Test_server* server=new Test_server(&a);
 
+#include <QCoreApplication>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QList>
+
+int main(int argc, char *argv[]){
+    QCoreApplication a(argc, argv);
+    Test_server* server = new Test_server(&a);
+
+    // комментарий не правлю, т.к. это просто "комментарий"
     /*QSqlDatabase db=QSqlDatabase::addDatabase("QPSQL");
     db.setHostName("127.0.0.1");
     db.setPort(5432);
