@@ -10,15 +10,17 @@
 #include <QJsonObject>
 
 
-enum Query_id{
-    entry_id        = 0, // чаще явно определяют лишь первый элемент (0)
-    delete_id       = 1,
-    select_id       = 2,
-    insert_id       = 3,
-    registration_id = 4,
-    select_all_id   = 5,
-    update_id       = 6
+enum Query_id
+{
+    entry_id = 0,
+    delete_id
+    select_id
+    insert_id
+    registration_id
+    select_all_id
+    update_id
 };
+
 
 class Template_query : public QObject
 {
@@ -42,8 +44,9 @@ public:
     static QJsonObject select_all_for_record(const QString& email, int number_of_row, const QString parent_type_connection);
     static QJsonObject select_all_for_record(int film_id, const QString parent_type_connection);
     static bool exist_query(const QJsonObject& object, const QString parent_type_connection);
-    virtual  Json_creator process_request(QJsonObject &object)=0;
+    virtual Json_creator process_request(QJsonObject &object) = 0;
 };
+
 
 // определись, используешь ли ты египестские фигурные скобки
 // при определеннии классов/структур или обычные
@@ -56,6 +59,7 @@ public:
     Json_creator process_request(QJsonObject &object);
 };
 
+
 class Delete_query : public Template_query
 {
     Q_OBJECT
@@ -67,6 +71,7 @@ public:
     static bool genres_delete(QStringList* genres, int* gotten_film_id, const QString parent_type_connection);
 };
 
+
 class Select_query : public Template_query
 {
     Q_OBJECT
@@ -75,6 +80,7 @@ public:
 
     Json_creator process_request(QJsonObject &object);
 };
+
 
 class Insert_query : public Template_query
 {
@@ -90,6 +96,7 @@ public:
     static bool genres_insert(QStringList* genres, int film_id, const QString parent_type_connection);
 };
 
+
 class Registration_query : public Template_query
 {
     Q_OBJECT
@@ -99,6 +106,7 @@ public:
     Json_creator process_request(QJsonObject &object);
 };
 
+
 class Select_all_query : public Template_query
 {
     Q_OBJECT
@@ -107,6 +115,7 @@ public:
 
     Json_creator process_request(QJsonObject &object);
 };
+
 
 class Update_query : public Template_query
 {
@@ -118,6 +127,7 @@ public:
     static bool directors_update(QStringList* old_directors, QStringList* directors, int film_id, const QString parent_type_connection);
     static bool genres_update(QStringList* old_genres, QStringList* genres, int film_id, const QString parent_type_connection);
 };
+
 
 #endif // TEMPLATE_QUERY_H
 

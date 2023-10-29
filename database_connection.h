@@ -6,6 +6,7 @@
 #include <QSqlDatabase>
 #include <QSqlDriver>
 
+
 class Database_connection: public QObject
 {
     Q_OBJECT
