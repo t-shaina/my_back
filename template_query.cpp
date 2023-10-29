@@ -1,16 +1,20 @@
 #include "template_query.h"
 #include "database_connection.h"
-#include<QSql>
-#include<QSqlQuery>
-#include<QList>
-#include<QSqlDriver>
-#include<QSqlError>
-#include"json_creator.h"
-Template_query::Template_query()
-{}
+#include "json_creator.h"
+#include <QSql>
+#include <QSqlQuery>
+#include <QList>
+#include <QSqlDriver>
+#include <QSqlError>
 
-Template_query::~Template_query()
-{}
+Template_query::Template_query(){
+}
+
+Template_query::~Template_query(){
+}
+
+// далее ентот файл пока править не буду
+
 Template_query* Template_query::create_template_query(Query_id id){
     Template_query* query;
     switch(id){
@@ -41,6 +45,7 @@ Template_query* Template_query::create_template_query(Query_id id){
         }
         return query;
 }
+
 QStringList Template_query::decoding_json_object(const QJsonValue& object){
         QStringList decoded_object;
         QJsonArray object_array=object.toArray();

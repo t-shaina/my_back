@@ -15,11 +15,11 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Sql Network)
 
 add_executable(my_back
   main.cpp
-  database_connection.cpp
-  template_query.cpp
-  json_creator.cpp
-  test_server.cpp
-  socket_adapter.cpp
+  database_connection.cpp database_connection.h
+  template_query.cpp      template_query.h
+  json_creator.cpp        json_creator.h
+  test_server.cpp         test_server.h
+  socket_adapter.cpp      socket_adapter.h
 
 )
 target_link_libraries(my_back Qt${QT_VERSION_MAJOR}::Core Qt6::Sql Qt6::Network)
