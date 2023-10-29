@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         }
 
 
-        for(int i=0; i<films_id->size();++i){
+        for(int i=0; i<films_id->size();++i){ // просто из интереса - почему "++i", а не привычное "i++"?
 
             qDebug()<<"title is is"<<films_id->at(i);
         }
@@ -72,3 +72,26 @@ int main(int argc, char *argv[])
 
     return a.exec();
 }
+
+
+/*
+ * габаритные статические данные (напр. строка, что начинается нa 23-ей строке этого файла)
+ * следует выносить из функций в глобальное поле, как и любые другие константные данные
+ * напр:
+ * 
+ * char const * my_large_str = ""
+ * "WITH current_user_id AS(SELECT users.user_id "
+ * "FROM users "
+ * "WHERE users.user_email=:email "
+ * "LIMIT 1), "
+ * "current_films_id AS(SELECT films.film_id "
+ * "FROM films "
+ * "WHERE films.user_id IN(SELECT user_id FROM current_user_id) "
+ * "AND films.title=:title AND films.year=:year AND films.rating=:rating AND films.status=:status), "
+ * "current_director AS(SELECT directors.director "
+ * "FROM directors INNER JOIN films_directors ON directors.director_id=films_directors.director_id "
+ * ;
+ * 
+ * и далее в функции "int main(int, char**)" - "query.prepare(my_large_str);"
+ */
+

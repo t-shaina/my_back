@@ -9,8 +9,10 @@ Socket::Socket(QObject *parent)
 {
     server= new QTcpServer(this);
 
+    // также стоит ставить пробелы после запятых - правило хорошего тона
+    // напр "some_foo(param1, param2, param3);"
     connect(server, SIGNAL(newConnection()),this,SLOT(newConnection()));
-    if(!server->listen(QHostAddress::Any,1234)){
+    if(!server->listen(QHostAddress::Any,1234)){ 
         qDebug() << "Server could not start";
     } else {
         qDebug() << "Server started";
@@ -29,7 +31,9 @@ void Socket::newConnection(){
     Template_query* query_type=Template_query::create_template_query(query_id);
     QStringList* list_result=new QStringList();
     query_type->process_request(list_result, message);
-    QString result=QString(message.at(0));
+    // пробелы между операторами(арифметическими и присваивания) и данными
+    // напр "some a = b + c;"
+    QString result=QString(message.at(0)); 
     result+=Template_query::encoding_message( list_result);
     int bytes=socket->write(result.toUtf8());//тут проверка
 
