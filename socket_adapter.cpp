@@ -1,50 +1,56 @@
 #include "socket_adapter.h"
-#include<QByteArray>
-#include<QDataStream>
+
+#include <QByteArray>
+#include <QDataStream>
+
 ISocket_adapter::ISocket_adapter(QObject* parent)
-    : QObject(parent)
-{}
-ISocket_adapter:: ~ISocket_adapter(){}
+    : QObject(parent) {
+}
+
+ISocket_adapter::~ISocket_adapter(){
+}
 
 
 Socket_adapter::Socket_adapter(QObject* parent, QTcpSocket* p_socket)
-    :ISocket_adapter(parent), block_size_in(0)
-{
-    qDebug()<< "new Socket_adapter";
-    if(p_socket==0){
-        socket_=new QTcpSocket(this);
+    :ISocket_adapter(parent), block_size_in(0) {
+    qDebug() << "new Socket_adapter";
+    if (p_socket == 0){
+        socket_ = new QTcpSocket(this);
     }
-    else socket_=p_socket;
+    else socket_ = p_socket;
     connect(socket_, SIGNAL(readyRead()), this, SLOT(on_readyRead()));
     connect(socket_, SIGNAL(disconnected()), this, SLOT(on_disconnected()));
-
 }
-Socket_adapter:: ~Socket_adapter(){}
+
+Socket_adapter:: ~Socket_adapter(){
+}
+
 void Socket_adapter::on_readyRead(){
-    qDebug()<< "in readyRead";
+    qDebug() << "in readyRead";
     QByteArray buf;
     QDataStream in(socket_);
 
-    while(true){
-        qDebug()<<"block_size_in="<< block_size_in;
-        if (block_size_in==0){
-            if(socket_->bytesAvailable()<sizeof(int))
+    while (true){
+        qDebug() << "block_size_in=" << block_size_in;
+        if (block_size_in == 0){
+            if(socket_->bytesAvailable() < sizeof(int))
                 return;
-            in>>block_size_in;          
+            in >> block_size_in;
         }
-        else{
-            if(socket_->bytesAvailable()<block_size_in)
-            return;
-            in>>buf;
-            block_size_in=0;
+        else {
+            if(socket_->bytesAvailable() < block_size_in)
+                return;
+            in >> buf;
+            block_size_in = 0;
             emit have_new_message(buf);
         }
     }
 }
+
 void Socket_adapter::on_disconnected(){
-    //socket_->deleteLater();
     emit disconnected();
 }
+
 void Socket_adapter::sendData(const QByteArray& message){
     QByteArray block;
     QDataStream sendStream(&block, QIODevice::ReadWrite);
