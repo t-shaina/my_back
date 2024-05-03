@@ -10,7 +10,7 @@
 #include <QJsonDocument>
 
 Test_server::Test_server(QObject *parent)
-    : QObject(parent) {
+    : QObject(parent){
     server_ = new QTcpServer(this);
     connect(server_, SIGNAL(newConnection()), this, SLOT(on_newConnection()));
     m_clients = new QList<ISocket_adapter*>();
@@ -25,6 +25,7 @@ Test_server::Test_server(QObject *parent)
 
 Test_server::~Test_server(){
     delete m_clients;
+    delete server_;
 }
 
 void Test_server::on_newConnection(){

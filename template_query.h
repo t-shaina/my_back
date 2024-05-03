@@ -1,7 +1,7 @@
 #ifndef TEMPLATE_QUERY_H
 #define TEMPLATE_QUERY_H
 
-#include"json_creator.h"
+#include "json_creator.h"
 
 #include <QObject>
 #include <QString>
@@ -9,8 +9,7 @@
 #include <QChar>
 #include <QJsonObject>
 
-enum Query_id
-{
+enum Query_id{
     entry_id = 0,
     delete_id,
     select_id,
@@ -20,8 +19,7 @@ enum Query_id
     update_id,
 };
 
-class Template_query : public QObject
-{
+class Template_query : public QObject{
     Q_OBJECT
 
 public:
@@ -44,8 +42,7 @@ public:
     virtual Json_creator process_request(QJsonObject &object) = 0;
 };
 
-class Entry_query : public Template_query
-{
+class Entry_query : public Template_query{
     Q_OBJECT
 
 public:
@@ -54,8 +51,7 @@ public:
 };
 
 
-class Delete_query : public Template_query
-{
+class Delete_query : public Template_query{
     Q_OBJECT
 
 public:
@@ -66,8 +62,7 @@ public:
 };
 
 
-class Select_query : public Template_query
-{
+class Select_query : public Template_query{
     Q_OBJECT
 
 public:
@@ -76,8 +71,7 @@ public:
 };
 
 
-class Insert_query : public Template_query
-{
+class Insert_query : public Template_query{
     Q_OBJECT
 
 public:
@@ -91,8 +85,7 @@ public:
 };
 
 
-class Registration_query : public Template_query
-{
+class Registration_query : public Template_query{
     Q_OBJECT
 
 public:
@@ -101,8 +94,7 @@ public:
 };
 
 
-class Select_all_query : public Template_query
-{
+class Select_all_query : public Template_query{
     Q_OBJECT
 
 public:
@@ -111,8 +103,7 @@ public:
 };
 
 
-class Update_query : public Template_query
-{
+class Update_query : public Template_query{
     Q_OBJECT
 
 public:

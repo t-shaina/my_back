@@ -4,15 +4,16 @@
 #include <QDataStream>
 
 ISocket_adapter::ISocket_adapter(QObject* parent)
-    : QObject(parent) {
+    : QObject(parent){
 }
 
 ISocket_adapter::~ISocket_adapter(){
+     qDebug() << "in dtror ISocket_adapter";
 }
 
 
 Socket_adapter::Socket_adapter(QObject* parent, QTcpSocket* p_socket)
-    :ISocket_adapter(parent), block_size_in(0) {
+    :ISocket_adapter(parent), block_size_in(0){
     qDebug() << "new Socket_adapter";
     if (p_socket == 0){
         socket_ = new QTcpSocket(this);
@@ -23,6 +24,8 @@ Socket_adapter::Socket_adapter(QObject* parent, QTcpSocket* p_socket)
 }
 
 Socket_adapter:: ~Socket_adapter(){
+    qDebug() << "in dtror Socket_adapter";
+    delete socket_;
 }
 
 void Socket_adapter::on_readyRead(){

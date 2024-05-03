@@ -6,8 +6,7 @@
 #include <QJsonArray>
 #include <QString>
 
-class Json_creator
-{
+class Json_creator{
 public:
 
     Json_creator(QString request_code, bool error_code, QString email);
@@ -19,9 +18,7 @@ public:
     static QString bool_to_str(bool status);
     QJsonObject get_json_data();
     void adding_information(QString key, QString value);
-    void changing_error_code(bool error_code);
-
-    ~Json_creator();
+    void changing_error_code(bool error_code);   
 
 private:
 

@@ -1,11 +1,11 @@
 #include "template_query.h"
 #include "database_connection.h"
-#include"json_creator.h"
-#include<QSql>
-#include<QSqlQuery>
-#include<QList>
-#include<QSqlDriver>
-#include<QSqlError>
+#include "json_creator.h"
+#include <QSql>
+#include <QSqlQuery>
+#include <QList>
+#include <QSqlDriver>
+#include <QSqlError>
 
 Template_query::Template_query(){
 
@@ -649,8 +649,8 @@ Json_creator  Update_query::process_request(QJsonObject &object){
             film_updation_state = query_films_update.next();
             if (film_updation_commit_state){
                 if (film_updation_state){
-                    directors_updation_state  =Update_query::directors_update(&decoded_old_directors, &decoded_new_directors, gotten_film_id, request_code);
-                    genres_updation_state = Update_query::genres_update(&decoded_old_genres, &decoded_new_genres, gotten_film_id, request_code);
+                    directors_updation_state  = Update_query::directors_update(&decoded_old_directors, &decoded_new_directors, gotten_film_id, request_code);
+                    genres_updation_state     = Update_query::genres_update(&decoded_old_genres, &decoded_new_genres, gotten_film_id, request_code);
                     qDebug() << "directors insert is" << directors_updation_state;
                     qDebug() << "genres insert is" << genres_updation_state;
                     film_updation_state = directors_updation_state && genres_updation_state;
@@ -758,7 +758,7 @@ bool Delete_query::genres_delete(QStringList* genres, int* gotten_film_id, const
                 query_films_genres_delete.bindValue(":film_id", *gotten_film_id);
                 query_films_genres_delete.bindValue(":genre", genres->at(i));
                 query_films_genres_delete.exec();
-                qDebug() << "in genres delete film_genre_id is" << query_films_genres_delete.value(0).toInt();
+                qDebug() << "in genres delete film_genre_id is" << query_films_genres_delete.value(0).toInt(); // выше этой строки ошибка QSqlQuery::value: not positioned on a valid record
                 qDebug() << "last error in query_films_genres_delete" << query_films_genres_delete.lastError();
                 if (!query_films_genres_delete.next())
                     update_state = update_state && false;

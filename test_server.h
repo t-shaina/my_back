@@ -12,8 +12,7 @@
 #include <QJsonObject>
 
 
-class Test_server : public QObject
-{
+class Test_server : public QObject{
     Q_OBJECT
 
 protected:
@@ -25,6 +24,8 @@ public:
 
     Test_server(QObject *parent = nullptr);
     ~Test_server();
+    Test_server& operator=(Test_server const & other) = delete;
+    Test_server(Test_server const & other)            = delete;
 
 public slots:
 
@@ -34,9 +35,10 @@ public slots:
 };
 
 
-class Server_socket_adapter : public Socket_adapter
-{
+class Server_socket_adapter : public Socket_adapter{
+
 public:
+
     explicit Server_socket_adapter(QTcpSocket* socket, QObject* parent = 0);
 };
 

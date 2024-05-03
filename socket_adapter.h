@@ -2,7 +2,7 @@
 #define SOCKET_ADAPTER_H
 
 #include <QObject>
-#include<QTcpSocket>
+#include <QTcpSocket>
 
 // Должен быть объявлен и определен в отдельном
 // файле (файлах), но для удобства так
